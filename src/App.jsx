@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast'; // NEW: Toast Library
 import './index.css';
 
 // NEW: Import your Profile component
-import Profile from './Profile'; 
+import Profile from './UserProfile.jsx'; 
 
 function AuthScreen({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
