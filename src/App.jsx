@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Link, useParams, useNavigate } from 'reac
 import toast, { Toaster } from 'react-hot-toast'; // NEW: Toast Library
 import './index.css';
 
+// NEW: Import your Profile component
+import Profile from './Profile'; 
+
 function AuthScreen({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
@@ -13,7 +16,6 @@ function AuthScreen({ onLogin }) {
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     
     try {
-      // UPDATED LINK
       const response = await fetch(`https://locallink-backend-whpe.onrender.com${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -21,7 +23,7 @@ function AuthScreen({ onLogin }) {
       });
       const data = await response.json();
       
-      if (!response.ok) return toast.error(data.error); // UPGRADED: Toast
+      if (!response.ok) return toast.error(data.error); 
       
       if (isLogin) {
         toast.success("Login successful!");
@@ -60,7 +62,6 @@ function Dashboard({ token, user }) {
   const [search, setSearch] = useState("");
 
   const fetchCommunities = async () => {
-    // UPDATED LINK
     const res = await fetch("https://locallink-backend-whpe.onrender.com/api/communities");
     const data = await res.json();
     setCommunities(data);
@@ -70,7 +71,6 @@ function Dashboard({ token, user }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    // UPDATED LINK
     const res = await fetch("https://locallink-backend-whpe.onrender.com/api/communities", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -88,7 +88,6 @@ function Dashboard({ token, user }) {
   };
 
   const handleLike = async (id) => {
-    // UPDATED LINK
     const res = await fetch(`https://locallink-backend-whpe.onrender.com/api/communities/${id}/like`, {
       method: "PATCH",
       headers: { "Authorization": `Bearer ${token}` }
@@ -99,11 +98,9 @@ function Dashboard({ token, user }) {
     }
   };
 
-  // NEW: Delete logic
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to permanently delete this hub?")) return;
     
-    // UPDATED LINK
     const res = await fetch(`https://locallink-backend-whpe.onrender.com/api/communities/${id}`, {
       method: "DELETE",
       headers: { "Authorization": `Bearer ${token}` }
@@ -150,14 +147,13 @@ function Dashboard({ token, user }) {
       <div className="community-grid">
         {filteredCommunities.map(c => {
           const hasLiked = c.likes.includes(user.id);
-          const isAuthor = c.author?._id === user.id; // SECURITY: Verify ownership
+          const isAuthor = c.author?._id === user.id;
 
           return (
             <div key={c._id} className="card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <h3 style={{ margin: "0 0 10px 0", fontSize: "22px", color: "var(--primary-accent)" }}>{c.name}</h3>
                 
-                {/* CONDITIONAL RENDER: Only the author sees the Delete button */}
                 {isAuthor && (
                   <button onClick={() => handleDelete(c._id)} className="btn btn-outline" style={{ padding: "4px 8px", fontSize: "12px", color: "#dc3545", borderColor: "#dc3545" }}>
                     🗑️ Delete
@@ -197,7 +193,6 @@ function CommunityHub({ token, user }) {
   const [commentText, setCommentText] = useState("");
 
   const fetchCommunity = async () => {
-    // UPDATED LINK
     const res = await fetch(`https://locallink-backend-whpe.onrender.com/api/communities/${id}`);
     if (res.ok) setCommunity(await res.json());
     else {
@@ -210,7 +205,6 @@ function CommunityHub({ token, user }) {
 
   const handlePostComment = async (e) => {
     e.preventDefault();
-    // UPDATED LINK
     const res = await fetch(`https://locallink-backend-whpe.onrender.com/api/communities/${id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -289,15 +283,20 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {/* NEW: Global Toaster Component */}
       <Toaster position="bottom-right" reverseOrder={false} />
       
       <div className="app-container">
         <nav className="navbar">
-          <Link to="/" className="brand-logo">LocalLink</Link>
+          <Link to="/" className="brand-logo" style={{ textDecoration: 'none' }}>LocalLink</Link>
           {user && (
             <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
               <span style={{ color: "var(--text-secondary)" }}>Hello, <b>{user.username}</b></span>
+              
+              {/* NEW: A button to navigate to the Profile page */}
+              <Link to="/profile" className="btn btn-outline" style={{ textDecoration: "none", padding: "6px 12px" }}>
+                My Profile
+              </Link>
+
               <button onClick={handleLogout} className="btn btn-danger">Logout</button>
             </div>
           )}
@@ -309,6 +308,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard token={token} user={user} />} />
             <Route path="/community/:id" element={<CommunityHub token={token} user={user} />} />
+            
+            {/* NEW: The Route that actually loads the Profile component */}
+            <Route path="/profile" element={<Profile token={token} />} />
           </Routes>
         )}
       </div>
